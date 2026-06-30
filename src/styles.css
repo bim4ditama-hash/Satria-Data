@@ -1,0 +1,115 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-grid: var(--grid);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(1 0 0); /* #FFFFFF */
+  --foreground: oklch(0.20 0.04 264); /* #0F172A deep slate navy */
+  --card: oklch(0.985 0.005 247); /* near #F8FAFC */
+  --card-foreground: oklch(0.20 0.04 264);
+  --surface: oklch(0.985 0.005 247); /* #F8FAFC */
+  --surface-2: oklch(0.97 0.008 247); /* #F1F5F9 */
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.04 264);
+  --primary: oklch(0.20 0.04 264);
+  --primary-foreground: oklch(0.99 0.003 247);
+  --secondary: oklch(0.97 0.008 247);
+  --secondary-foreground: oklch(0.20 0.04 264);
+  --muted: oklch(0.97 0.008 247);
+  --muted-foreground: oklch(0.55 0.03 257); /* #64748B */
+  --accent: oklch(0.97 0.008 247);
+  --accent-foreground: oklch(0.20 0.04 264);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.99 0.003 247);
+  --border: oklch(0.92 0.013 256); /* #E2E8F0 */
+  --input: oklch(0.92 0.013 256);
+  --ring: oklch(0.70 0.04 257);
+  --grid: oklch(0.85 0.013 256); /* #CBD5E1 */
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+}
+
+/* perspective wrapper for the isolated province spin */
+.perspective-stage {
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* slow continuous y-axis rotation */
+@keyframes spin-y {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+.animate-spin-y {
+  animation: spin-y 16s linear infinite;
+  transform-style: preserve-3d;
+}
+
+/* shimmer accent for KPI tiles */
+@keyframes grid-pan {
+  from { background-position: 0 0; }
+  to   { background-position: 40px 40px; }
+}
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.25;
+}
+
+.scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
