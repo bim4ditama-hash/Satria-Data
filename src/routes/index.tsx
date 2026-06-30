@@ -15,7 +15,6 @@ import { MapIndonesia, type MapMode } from "@/components/MapIndonesia";
 import { ProvincePanel } from "@/components/ProvincePanel";
 import { SearchBar } from "@/components/SearchBar";
 import { Legend } from "@/components/Legend";
-import itbLogo from "@/assets/itb.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -247,17 +246,8 @@ function Header() {
     <header className="border-b border-border bg-white">
       <div className="mx-auto flex max-w-[1500px] items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
-          <div
-            className="relative grid size-11 place-items-center overflow-hidden rounded-lg shadow-sm ring-1 ring-black/5"
-            style={{ backgroundColor: "#0c2340" }}
-            aria-label="Institut Teknologi Bandung"
-          >
-            <img
-              src={itbLogo.url}
-              alt="Institut Teknologi Bandung"
-              className="size-11 object-cover opacity-95"
-              style={{ mixBlendMode: "screen" }}
-            />
+          <div style={{ backgroundColor: '#002060' }} className="p-2 rounded-lg flex items-center justify-center">
+            <img src="/itb.jpg" alt="Logo ITB" className="h-8 w-8 object-contain" />
           </div>
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
