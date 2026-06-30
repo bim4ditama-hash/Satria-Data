@@ -247,7 +247,11 @@ function Header() {
       <div className="mx-auto flex max-w-[1500px] items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
           <div style={{ backgroundColor: '#002060' }} className="p-2 rounded-lg flex items-center justify-center">
-            <img src="/logo-putih-itb.jpg.jpg" alt="Logo ITB" className="h-8 w-8 object-contain" />
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/id/a/ae/Logo_Institut_Teknologi_Bandung.svg" 
+              alt="Logo ITB" 
+              className="h-8 w-8 object-contain brightness-0 invert" 
+            />
           </div>
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">

@@ -24,6 +24,7 @@ export function MapIndonesia({
 
   // Mengambil data geografi Indonesia asli beresolusi tinggi (Fail-Safe CDN)
   useEffect(() => {
+    // GANTI baris fetch lama yang mengarah ke file lokal dengan URL GitHub ini:
     fetch("https://raw.githubusercontent.com/superpikar/Indonesia-GeoJSON/master/indonesia-provinces.json")
       .then((res) => res.json())
       .then((data) => setGeoData(data))
