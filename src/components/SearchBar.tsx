@@ -1,26 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import { normalizeName } from "@/data/provinces";
-import type { IktScore } from "@/lib/ikt";
+import { DATASET, iktBandFor, normalizeName, type ProvinceDatum } from "@/data/dataset";
 
 interface Props {
-  scores: IktScore[];
   onPick: (key: string) => void;
 }
 
-export function SearchBar({ scores, onPick }: Props) {
+export function SearchBar({ onPick }: Props) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
-  const results = useMemo(() => {
-    if (!q.trim()) return scores.slice(0, 8);
+  const results = useMemo<ProvinceDatum[]>(() => {
+    if (!q.trim()) return DATASET.slice(0, 8);
     const nq = normalizeName(q);
-    return scores
-      .filter((s) => normalizeName(s.row.nama).includes(nq))
-      .slice(0, 8);
-  }, [q, scores]);
+    return DATASET.filter((d) => normalizeName(d.nama).includes(nq)).slice(0, 8);
+  }, [q]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -43,12 +39,13 @@ export function SearchBar({ scores, onPick }: Props) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={(e) => {
-            if (e.key === "ArrowDown") setActive((a) => Math.min(a + 1, results.length - 1));
+            if (e.key === "ArrowDown")
+              setActive((a) => Math.min(a + 1, results.length - 1));
             else if (e.key === "ArrowUp") setActive((a) => Math.max(a - 1, 0));
             else if (e.key === "Enter" && results[active]) {
-              onPick(normalizeName(results[active].row.nama));
+              onPick(normalizeName(results[active].nama));
               setOpen(false);
-              setQ(results[active].row.nama);
+              setQ(results[active].nama);
             } else if (e.key === "Escape") setOpen(false);
           }}
           placeholder="Cari provinsi… (Aceh, DKI Jakarta, Papua)"
@@ -69,31 +66,34 @@ export function SearchBar({ scores, onPick }: Props) {
 
       {open && results.length > 0 && (
         <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-lg border border-border bg-white shadow-lg scrollbar-thin">
-          {results.map((s, i) => (
-            <button
-              key={s.row.kode}
-              onClick={() => {
-                onPick(normalizeName(s.row.nama));
-                setOpen(false);
-                setQ(s.row.nama);
-              }}
-              onMouseEnter={() => setActive(i)}
-              className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition ${
-                i === active ? "bg-surface-2" : "bg-white hover:bg-surface"
-              }`}
-            >
-              <span className="flex items-center gap-2.5">
-                <span
-                  className="inline-block size-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: s.bandColor }}
-                />
-                <span className="font-medium text-foreground">{s.row.nama}</span>
-              </span>
-              <span className="font-mono text-[11px] text-muted-foreground">
-                IKT {s.ikt.toFixed(1)} · #{s.rank}
-              </span>
-            </button>
-          ))}
+          {results.map((d, i) => {
+            const band = iktBandFor(d.skor * 100);
+            return (
+              <button
+                key={d.kode}
+                onClick={() => {
+                  onPick(normalizeName(d.nama));
+                  setOpen(false);
+                  setQ(d.nama);
+                }}
+                onMouseEnter={() => setActive(i)}
+                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition ${
+                  i === active ? "bg-surface-2" : "bg-white hover:bg-surface"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <span
+                    className="inline-block size-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: band.color }}
+                  />
+                  <span className="font-medium text-foreground">{d.nama}</span>
+                </span>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  IKT {(d.skor * 100).toFixed(1)} · #{d.rank}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

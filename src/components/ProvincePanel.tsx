@@ -1,24 +1,37 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, AlertTriangle, Sparkles, TrendingDown, TrendingUp, Building2, Coins, Zap, Target } from "lucide-react";
-import type { IktScore } from "@/lib/ikt";
-import { buildNarrative, detectWeaknesses } from "@/lib/ikt";
+import { ArrowLeft, AlertTriangle, Sparkles, Award, Layers as LayersIcon } from "lucide-react";
+import {
+  DATASET,
+  detectWeaknesses,
+  hasNoCritical,
+  iktBandFor,
+  LISA_COLORS,
+  LISA_LABELS,
+  normalizeName,
+  type ProvinceDatum,
+} from "@/data/dataset";
 
 interface Props {
-  score: IktScore;
+  provinceKey: string;
   onClose: () => void;
 }
 
-const DIM_META = [
-  { key: "capaian" as const, label: "Capaian & Trayektori", weight: 35, icon: TrendingUp },
-  { key: "komitmen" as const, label: "Komitmen & Regulasi", weight: 20, icon: Target },
-  { key: "pembiayaan" as const, label: "Pembiayaan & Investasi", weight: 25, icon: Coins },
-  { key: "infrastruktur" as const, label: "Infrastruktur & Enabling", weight: 20, icon: Zap },
+const SUB_META = [
+  { key: "capaian" as const, label: "Capaian & Trayektori" },
+  { key: "sumberDaya" as const, label: "Sumber Daya & Pemanfaatan" },
+  { key: "pembiayaan" as const, label: "Pembiayaan & Fiskal" },
+  { key: "regulasi" as const, label: "Regulasi & Kelembagaan" },
+  { key: "infrastruktur" as const, label: "Infrastruktur Jaringan" },
 ];
 
-export function ProvincePanel({ score, onClose }: Props) {
-  const weak = detectWeaknesses(score, 4);
-  const narrative = buildNarrative(score, weak);
-  const r = score.row;
+export function ProvincePanel({ provinceKey, onClose }: Props) {
+  const d = DATASET.find((x) => normalizeName(x.nama) === provinceKey);
+  if (!d) return null;
+  const ikt = d.skor * 100;
+  const band = iktBandFor(ikt);
+  const weak = detectWeaknesses(d);
+  const ok = hasNoCritical(d);
+  const lisaColor = LISA_COLORS[d.lisa];
 
   return (
     <motion.aside
@@ -26,58 +39,66 @@ export function ProvincePanel({ score, onClose }: Props) {
       initial={{ x: 480, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 480, opacity: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
     >
-      {/* Header */}
       <div className="border-b border-border px-6 pt-5 pb-4">
         <button
           onClick={onClose}
           className="mb-4 inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition"
         >
           <ArrowLeft className="size-3.5" />
-          Kembali ke peta nasional
+          Kembali ke Peta Nasional
         </button>
         <div className="flex items-start gap-3">
           <div
             className="mt-1 size-3 rounded-full ring-4"
-            style={{ backgroundColor: score.bandColor, boxShadow: `0 0 0 4px ${score.bandColor}22` }}
+            style={{ backgroundColor: band.color, boxShadow: `0 0 0 4px ${band.color}22` }}
           />
           <div className="flex-1">
             <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Provinsi · Kode BPS {r.kode}
+              Provinsi · Kode BPS {d.kode}
             </div>
-            <h2 className="mt-1 text-2xl font-semibold leading-tight text-foreground">{r.nama}</h2>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {r.catatan}
-            </div>
+            <h2 className="mt-1 text-2xl font-semibold leading-tight text-foreground">{d.nama}</h2>
           </div>
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-2">
-          <KPI label="Skor IKT" value={score.ikt.toFixed(1)} accent={score.bandColor} />
-          <KPI label="Peringkat" value={`#${score.rank}`} sub="dari 38" />
-          <KPI label="Status" value={score.bandLabel} accent={score.bandColor} mode="band" />
+          <KPI label="Skor IKT" value={ikt.toFixed(1)} accent={band.color} />
+          <KPI label="Peringkat" value={`#${d.rank}`} sub="dari 38" />
+          <KPI label="Status" value={band.label} accent={band.color} mode="band" />
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-border bg-surface px-3 py-2">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <LayersIcon className="size-3" /> Tipologi K-Means
+            </div>
+            <div className="mt-1 text-[12px] font-semibold text-foreground">{d.tipologi}</div>
+          </div>
+          <div
+            className="rounded-lg border px-3 py-2"
+            style={{ borderColor: lisaColor + "66", backgroundColor: lisaColor + "1A" }}
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <Sparkles className="size-3" /> Klaster LISA
+            </div>
+            <div className="mt-1 text-[12px] font-semibold text-foreground">
+              {LISA_LABELS[d.lisa]}
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="scrollbar-thin flex-1 overflow-y-auto px-6 py-5 space-y-6">
-        {/* Breakdown radar/bars */}
         <section>
-          <SectionTitle icon={Building2}>Bedah 4 Dimensi Kesiapan</SectionTitle>
+          <SectionTitle>Bedah 5 Sub-Skor Kesiapan</SectionTitle>
           <div className="mt-3 space-y-2.5">
-            {DIM_META.map((d) => {
-              const v = score.dims[d.key];
-              const Icon = d.icon;
+            {SUB_META.map((s) => {
+              const v = (d[s.key] as number) * 100;
               return (
-                <div key={d.key}>
+                <div key={s.key}>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
-                      <Icon className="size-3.5 text-muted-foreground" />
-                      {d.label}
-                      <span className="ml-1 rounded-sm bg-surface-2 px-1 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        bobot {d.weight}%
-                      </span>
-                    </span>
+                    <span className="font-medium text-foreground">{s.label}</span>
                     <span className="font-mono text-foreground">{v.toFixed(0)}</span>
                   </div>
                   <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-surface-2">
@@ -95,64 +116,82 @@ export function ProvincePanel({ score, onClose }: Props) {
           </div>
         </section>
 
-        {/* Variables to fix */}
         <section>
-          <SectionTitle icon={AlertTriangle} tone="warn">
+          <SectionTitle icon={AlertTriangle} tone={ok ? "good" : "warn"}>
             Variabel yang Perlu Dibenahi
           </SectionTitle>
-          <ul className="mt-3 space-y-2">
-            {weak.map((w) => (
-              <li
-                key={w.key}
-                className="flex items-center justify-between rounded-md border border-border bg-surface px-3 py-2"
-              >
-                <span className="text-xs font-medium text-foreground">{w.label}</span>
-                <span className="inline-flex items-center gap-2">
+          {ok ? (
+            <div className="mt-3 flex items-start gap-2 rounded-md border border-[#146B3A33] bg-[#146B3A0F] px-3 py-2.5">
+              <Award className="mt-0.5 size-4 shrink-0" style={{ color: "#146B3A" }} />
+              <p className="text-[13px] leading-relaxed text-foreground/85">
+                Tidak ada variabel kritis yang perlu dibenahi segera. Pertahankan komitmen
+                transisi.
+              </p>
+            </div>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {weak.map((w) => (
+                <li
+                  key={w.key}
+                  className="flex items-center justify-between rounded-md border border-border bg-surface px-3 py-2"
+                >
+                  <span className="text-xs font-medium text-foreground">{w.label}</span>
                   <span className="font-mono text-[11px] text-muted-foreground">
                     {(w.value * 100).toFixed(0)}/100
                   </span>
-                  <TrendingDown className="size-3.5" style={{ color: "#BB2528" }} />
-                </span>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
-        {/* Narrative */}
         <section>
-          <SectionTitle icon={Sparkles}>Narasi Alur Logika</SectionTitle>
-          <div className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
-            {narrative.map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
-        </section>
-
-        {/* Raw indicators */}
-        <section>
-          <SectionTitle>Indikator Mentah</SectionTitle>
+          <SectionTitle>Indikator Diagnostik</SectionTitle>
           <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-            <Stat label="Bauran 2025" value={`${r.ebt2025.toFixed(2)}%`} />
-            <Stat label="Target RUED" value={`${r.targetRued}% @ ${r.tahunTarget}`} />
-            <Stat label="Δ vs Trayektori" value={`${r.gapTarget > 0 ? "+" : ""}${r.gapTarget.toFixed(1)} pt`} />
-            <Stat label="Status RUED" value={r.statusRued === 1 ? "Perda" : r.statusRued === 0.5 ? "Raperda" : "Belum"} />
-            <Stat label="Kapasitas EBT" value={`${r.kapasitas.toLocaleString("id-ID")} MW`} />
-            <Stat label="Potensi EBT" value={`${r.potensi.toFixed(1)} GW`} />
-            <Stat label="Pemanfaatan" value={`${r.pemanfaatan.toFixed(2)}%`} />
-            <Stat label="Elektrifikasi" value={`${r.elektrifikasi.toFixed(2)}%`} />
-            <Stat label="Anggaran EBT" value={`Rp ${(r.anggaran / 1000).toFixed(1)} M`} />
-            <Stat label="Investasi" value={`USD ${r.investasi.toFixed(1)} jt`} />
-            <Stat label="PDRB/Kapita" value={`Rp ${r.pdrbKapita.toFixed(1)} jt`} />
-            <Stat label="PAD/APBD" value={`${r.padApbd.toFixed(1)}%`} />
+            <Stat
+              label="Δ vs RUED-P"
+              value={`${d.gap > 0 ? "+" : ""}${d.gap.toFixed(1)} poin`}
+              accent={d.gap > 0 ? "#E5484D" : "#146B3A"}
+            />
+            <Stat label="Local I" value={d.localI.toFixed(3)} />
+            <Stat label="Kuadran" value={d.kuadran || "—"} />
+            <Stat label="p-value" value={d.pValue.toFixed(3)} />
           </div>
         </section>
+
+        <p className="text-[12px] leading-relaxed text-muted-foreground">
+          {buildNarrative(d, band.label)}
+        </p>
       </div>
 
-      <div className="border-t border-border bg-surface px-6 py-3 text-[11px] text-muted-foreground">
-        Sumber: DEN, ESDM, BPS, DJPK Kemenkeu, BKPM · Indeks komposit min-max, bobot 35/20/25/20.
+      <div className="border-t border-border bg-surface px-6 py-3">
+        <button
+          onClick={onClose}
+          className="w-full rounded-md bg-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-foreground/90"
+        >
+          ← Kembali ke Peta Nasional
+        </button>
       </div>
     </motion.aside>
   );
+}
+
+function buildNarrative(d: ProvinceDatum, status: string): string {
+  const parts: string[] = [];
+  parts.push(
+    `${d.nama} menempati peringkat #${d.rank} dari 38 dengan skor ${(d.skor * 100).toFixed(1)} (${status}), klaster ${d.tipologi}.`
+  );
+  if (d.gap > 0)
+    parts.push(`Tertinggal ${d.gap.toFixed(1)} poin dari trayektori RUED-P.`);
+  else if (d.gap < 0)
+    parts.push(`Melampaui jalur RUED-P sebesar ${Math.abs(d.gap).toFixed(1)} poin.`);
+  if (d.lisa === "High-High")
+    parts.push(`Berada dalam koridor High-High — wilayah pelopor yang dikelilingi tetangga sama-sama kuat.`);
+  if (d.lisa === "Low-Low")
+    parts.push(`Terperangkap dalam zona Low-Low — wilayah lambat di tengah daerah tertinggal lainnya.`);
+  if (d.lisa === "Low-High")
+    parts.push(`Outlier Low-High — daerah lambat yang dikelilingi tetangga lebih maju.`);
+  return parts.join(" ");
 }
 
 function SectionTitle({
@@ -160,13 +199,14 @@ function SectionTitle({
   children,
   tone,
 }: {
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<{ className?: string; color?: string }>;
   children: React.ReactNode;
-  tone?: "warn";
+  tone?: "warn" | "good";
 }) {
+  const color = tone === "warn" ? "#E5484D" : tone === "good" ? "#146B3A" : undefined;
   return (
     <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      {Icon && <Icon className={`size-3.5 ${tone === "warn" ? "text-[#EA4630]" : ""}`} />}
+      {Icon && <Icon className="size-3.5" color={color} />}
       {children}
     </h3>
   );
@@ -190,7 +230,9 @@ function KPI({
       className="rounded-lg border border-border bg-surface px-3 py-2.5"
       style={mode === "band" && accent ? { borderColor: accent + "55", backgroundColor: accent + "0F" } : undefined}
     >
-      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
+      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </div>
       <div
         className="mt-0.5 truncate font-display text-lg font-semibold leading-tight"
         style={accent && mode !== "band" ? { color: accent } : undefined}
@@ -202,19 +244,23 @@ function KPI({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div className="rounded-md border border-border bg-white px-2.5 py-1.5">
       <div className="text-[10px] text-muted-foreground">{label}</div>
-      <div className="mt-0.5 font-mono text-[12px] font-medium text-foreground">{value}</div>
+      <div
+        className="mt-0.5 font-mono text-[12px] font-semibold"
+        style={accent ? { color: accent } : undefined}
+      >
+        {value}
+      </div>
     </div>
   );
 }
 
 function barColor(v: number) {
-  if (v <= 20) return "#BB2528";
-  if (v <= 40) return "#EA4630";
-  if (v <= 60) return "#F8B229";
-  if (v <= 80) return "#146B3A";
-  return "#165B33";
+  if (v <= 25) return "#BB2528";
+  if (v <= 50) return "#EA4630";
+  if (v <= 75) return "#F8B229";
+  return "#146B3A";
 }
